@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hostel Room Allocation System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+<h1>🏨 Hostel Room Allocation System</h1>
+<div class="dashboard">
+
+    <div class="card">
+        <h3>🏢 Total Rooms</h3>
+        <p>{{ total_rooms }}</p>
+    </div>
+
+    <div class="card">
+        <h3>✅ Available</h3>
+        <p>{{ available_rooms }}</p>
+    </div>
+
+    <div class="card">
+        <h3>👥 Occupied</h3>
+        <p>{{ occupied_rooms }}</p>
+    </div>
+
+    <div class="card">
+        <h3>📊 Occupancy</h3>
+        <p>{{ occupancy_percentage }}%</p>
+    </div>
+
+</div>
+
+<form action="/allocate" method="POST">
+
+<input
+type="text"
+name="name"
+placeholder="Student Name"
+required>
+
+<select name="room">
+
+{% for room,status in rooms.items() %}
+{% if status == None %}
+<option value="{{room}}">
+Room {{room}}
+</option>
+{% endif %}
+{% endfor %}
+
+</select>
+
+<button type="submit">
+Allocate Room
+</button>
+
+</form>
+
+<h2>📋 Room Status</h2>
+
+<table>
+
+<tr>
+<th>Room</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+{% for room,status in rooms.items() %}
+
+<tr>
+
+<td>{{room}}</td>
+
+<td>
+
+{% if status %}
+Occupied by {{status}}
+{% else %}
+Available
+{% endif %}
+
+</td>
+
+<td>
+
+{% if status %}
+<a href="/vacate/{{room}}">
+Vacate
+</a>
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+</table>
+
+<hr>
+
+<h2>🔍 Search Student</h2>
+
+<input
+type="text"
+id="student_name"
+placeholder="Enter Student Name">
+
+<button onclick="searchStudent()">
+Search
+</button>
+
+<p id="search_result"></p>
+
+<hr>
+
+<div class="chat-container">
+
+<h2>🤖 Hostel Assistant</h2>
+
+<div id="chat-box" class="chat-box">
+
+<div class="bot-message">
+Hello! Ask me about room availability.
+</div>
+
+</div>
+
+<div class="chat-input">
+
+<input
+type="text"
+id="question"
+placeholder="Ask a question...">
+
+<button onclick="askAI()">
+Send
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+async function askAI(){
+
+    let question =
+    document.getElementById("question").value;
+
+    if(question=="") return;
+
+    let chatBox =
+    document.getElementById("chat-box");
+
+    chatBox.innerHTML +=
+    `<div class="user-message">${question}</div>`;
+
+    let formData = new FormData();
+
+    formData.append("question", question);
+
+    let response =
+    await fetch("/ask_ai",{
+        method:"POST",
+        body:formData
+    });
+
+    let data =
+    await response.json();
+
+    chatBox.innerHTML +=
+    `<div class="bot-message">${data.answer}</div>`;
+
+    document.getElementById("question").value="";
+
+    chatBox.scrollTop =
+    chatBox.scrollHeight;
+}
+
+
+async function searchStudent(){
+
+    let student =
+    document.getElementById("student_name").value;
+
+    if(student=="") return;
+
+    let formData = new FormData();
+
+    formData.append("student_name", student);
+
+    let response =
+    await fetch("/search_student",{
+        method:"POST",
+        body:formData
+    });
+
+    let data =
+    await response.json();
+
+    document.getElementById("search_result").innerHTML =
+    data.result;
+}
+
+</script>
+
+</body>
+</html>
